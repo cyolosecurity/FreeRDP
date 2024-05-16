@@ -39,6 +39,8 @@ include(ConfigureFreeRDP)
 
 find_package(X11 REQUIRED)
 
+
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../resources)
 include_directories(${X11_INCLUDE_DIRS})
 include_directories(${OPENSSL_INCLUDE_DIR})
@@ -84,13 +86,6 @@ if (CHANNEL_TSMF_CLIENT)
 	)
 endif()
 
-if(CLIENT_INTERFACE_SHARED)
-	AddTargetWithResourceFile(${PROJECT_NAME} "SHARED" "${PROJECT_VERSION}" SRCS)
-else()
-	AddTargetWithResourceFile(${PROJECT_NAME} "STATIC" "${PROJECT_VERSION}" SRCS)
-endif()
-target_include_directories(${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:include>)
-
 set(PRIV_LIBS
 	${X11_LIBRARIES}
 )
@@ -103,9 +98,24 @@ if(X11_XShm_FOUND)
 	include_directories(${X11_XShm_INCLUDE_PATH})
 	list(APPEND PRIV_LIBS
 		${X11_Xext_LIB}
+
 	)
 endif()
 
+option(WITH_INSTRUCTION_SERVER "[X11] enable instruction server" ON)
+if (WITH_INSTRUCTION_SERVER)
+	find_package(MicroHttpd REQUIRED)
+	find_package(Jansson REQUIRED)
+	list(APPEND SRCS
+			xf_instruction_s.h
+			xf_instruction_s.c
+	)
+	list(APPEND PUB_LIBS
+			${MICROHTTPD_LIBRARY}
+			${JANSSON_LIBRARIES}
+	)
+
+endif()
 
 option(WITH_XINERAMA "[X11] enable xinerama" ON)
 if (WITH_XINERAMA)
@@ -202,6 +212,14 @@ if (WITH_XFIXES)
 	endif()
 endif()
 
+if(CLIENT_INTERFACE_SHARED)
+	AddTargetWithResourceFile(${PROJECT_NAME} "SHARED" "${PROJECT_VERSION}" SRCS)
+else()
+	AddTargetWithResourceFile(${PROJECT_NAME} "STATIC" "${PROJECT_VERSION}" SRCS)
+endif()
+
+target_include_directories(${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:include>)
+
 include_directories(${PROJECT_SOURCE_DIR}/resources)
 
 list(APPEND PUB_LIBS
@@ -216,6 +234,10 @@ if (NOT APPLE)
 endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PUB_LIBS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PRIV_LIBS})
+
+if (WITH_INSTRUCTION_SERVER)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE INSTRUCTION_SERVER)
+endif()
 
 if(WITH_CLIENT_INTERFACE)
 	install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries)

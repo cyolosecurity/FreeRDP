@@ -101,6 +101,7 @@
 #include "xf_graphics.h"
 #include "xf_keyboard.h"
 #include "xf_channels.h"
+#include "xf_instruction_s.h"
 #include "xfreerdp.h"
 #include "xf_utils.h"
 
@@ -1553,6 +1554,10 @@ static DWORD WINAPI xf_client_thread(LPVOID param)
 		goto disconnect;
 	}
 	inputEvent = xfc->x11event;
+
+#ifdef INSTRUCTION_SERVER
+	run_instruction_server(xfc);
+#endif
 
 	while (!freerdp_shall_disconnect_context(instance->context))
 	{
