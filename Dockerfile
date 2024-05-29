@@ -37,15 +37,13 @@ FROM dorowu/ubuntu-desktop-lxde-vnc:focal AS xfreerdp-instruction-server
 
 RUN apt-get update --allow-insecure-repositories # Don't run upgrade
 
-RUN apt-get install -y zlib1g-dev ffmpeg libssl-dev libavcodec-dev libavformat-dev libavfilter-dev heimdal-dev libicu-dev xorg-dev libcups2-dev libfuse3-dev xsltproc docbook-xsl libusb-1.0-0-dev libcjson-dev clang-format liburiparser-dev libmicrohttpd-dev libjansson-dev
+RUN apt-get install -y dnsutils zlib1g-dev ffmpeg libssl-dev libavcodec-dev libavformat-dev libavfilter-dev heimdal-dev libicu-dev xorg-dev libcups2-dev libfuse3-dev xsltproc docbook-xsl libusb-1.0-0-dev libcjson-dev clang-format liburiparser-dev libmicrohttpd-dev libjansson-dev
 
 RUN mkdir /FreeRDP
 
 WORKDIR /FreeRDP
 
 COPY --from=xfreerdp-instruction-server-compiler /FreeRDP /FreeRDP
-
-#RUN ./add-to-supervisord-with-values.sh
 
 COPY  xfreerdp.sh add-to-supervisord.conf /FreeRDP
 
